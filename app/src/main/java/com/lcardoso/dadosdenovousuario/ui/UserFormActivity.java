@@ -1,31 +1,51 @@
-package com.lcardoso.dadosdenovousuario;
-
-import androidx.appcompat.app.AppCompatActivity;
+package com.lcardoso.dadosdenovousuario.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-import com.lcardoso.dadosdenovousuario.Model.User;
+import androidx.appcompat.app.AppCompatActivity;
 
-public class MainActivity extends AppCompatActivity {
+import com.lcardoso.dadosdenovousuario.R;
+import com.lcardoso.dadosdenovousuario.contract.UserContract;
+import com.lcardoso.dadosdenovousuario.model.User;
+import com.lcardoso.dadosdenovousuario.presenter.UserPresenter;
 
-    EditText etName, etLastName, etPhone, etMobilePhone, etCpf, etAdress, etNeighborhood,
-    etPassword, etPasswordConfim;
-    Spinner spSchool, spState;
-    Button btnSend, btnReset;
+public class UserFormActivity extends AppCompatActivity implements UserContract.View {
+
+    private EditText etName, etLastName, etPhone, etMobilePhone, etCpf, etAdress, etNeighborhood,
+            etPassword, etPasswordConfim;
+    private Spinner spSchool, spState;
+    private Button btnSend, btnReset;
     private User mUser;
+    private UserContract.Presenter presenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_user_form);
 
+        presenter = new UserPresenter();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        presenter.onStart(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        presenter.onStop();
+    }
+
+    @Override
+    public void setEditTexts() {
         etName = findViewById(R.id.etName);
         etLastName = findViewById(R.id.etLastName);
         etPhone = findViewById(R.id.etPhone);
@@ -35,26 +55,12 @@ public class MainActivity extends AppCompatActivity {
         etNeighborhood = findViewById(R.id.etNeighborhood);
         etPassword = findViewById(R.id.etPassword);
         etPasswordConfim = findViewById(R.id.etPasswordConfim);
+    }
+
+    @Override
+    public void setSpinners() {
         spSchool = findViewById(R.id.spSchool);
         spState = findViewById(R.id.spState);
-
-        btnSend = findViewById(R.id.btnSend);
-        btnSend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-
-                sendData();
-            }
-        });
-
-        btnReset = findViewById(R.id.btnReset);
-        btnReset.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearForm();
-            }
-        });
 
         ArrayAdapter adapterSchool = ArrayAdapter.createFromResource(this, R.array.school, R.layout.spinner_item);
         adapterSchool.setDropDownViewResource(R.layout.spinner_dropdown);
@@ -65,15 +71,35 @@ public class MainActivity extends AppCompatActivity {
         spState.setAdapter(adapterState);
     }
 
-    private void sendData() {
-        Intent intent = new Intent(MainActivity.this, Main2Activity.class);
-        intent.putExtra("user", registerUser());
-        startActivity(intent);
-        clearForm();
+    @Override
+    public void setButtons() {
+        btnSend = findViewById(R.id.btnSend);
+        btnSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                presenter.onSendButtonClicked();
+            }
+        });
 
+        btnReset = findViewById(R.id.btnReset);
+        btnReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                presenter.onResetButtonClicked();
+            }
+        });
     }
 
-    public User registerUser(){
+    @Override
+    public void navigateToNextScreen() {
+        Intent intent = new Intent(UserFormActivity.this, UserDataActivity.class);
+        intent.putExtra("user", getFormData());
+        startActivity(intent);
+        clearForm();
+    }
+
+    @Override
+    public User getFormData() {
         mUser = new User();
 
         mUser.setName(etName.getText().toString());
@@ -89,8 +115,8 @@ public class MainActivity extends AppCompatActivity {
         return mUser;
     }
 
-    public void clearForm(){
-
+    @Override
+    public void clearForm() {
         etName.getText().clear();
         etLastName.getText().clear();
         etPhone.getText().clear();

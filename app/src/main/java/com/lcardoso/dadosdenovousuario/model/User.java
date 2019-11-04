@@ -1,11 +1,7 @@
-package com.lcardoso.dadosdenovousuario.Model;
+package com.lcardoso.dadosdenovousuario.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-
-import androidx.annotation.NonNull;
-
-import java.io.Serializable;
 
 public class User implements Parcelable {
 
